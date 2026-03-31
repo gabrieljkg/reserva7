@@ -12,6 +12,7 @@ export function Success() {
   const { clearCart } = useCart();
 
   useEffect(() => {
+    document.title = "Sucesso - AlugaAki";
     // Clear the cart when reaching the success page
     clearCart();
   }, [clearCart]);

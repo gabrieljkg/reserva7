@@ -18,6 +18,7 @@ export const AdminReservations = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = "Painel Administrativo - AlugaAki";
     if (!adminLoading) {
       if (!isAdmin) {
         navigate('/perfil');

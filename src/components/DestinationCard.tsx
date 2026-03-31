@@ -34,7 +34,7 @@ export const DestinationCard = ({ destination, isAdmin, onDelete }: Props) => {
           <Trash2 className="w-4 h-4" />
         </button>
       )}
-      <Link to={`/destination/${destination.id}`}>
+      <Link to={`/imovel/${destination.id}/${destination.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
         <div className="relative aspect-[3/4] overflow-hidden mb-6">
           <img 
             src={destination.image} 

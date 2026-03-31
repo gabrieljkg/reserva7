@@ -3,7 +3,7 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { supabase } from '../lib/supabase';
 import { motion } from 'motion/react';
-import { User, Mail, Phone, Lock, LogOut, Camera, MapPin, ShieldCheck } from 'lucide-react';
+import { User, Mail, Phone, Lock, LogOut, Camera, MapPin, ShieldCheck, Copy, Check, Share2, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Profile = () => {
@@ -27,12 +27,15 @@ export const Profile = () => {
   const [editAddress, setEditAddress] = useState('');
   const [editCep, setEditCep] = useState('');
   const [editAvatarUrl, setEditAvatarUrl] = useState('');
+  const [airbnbSyncActive, setAirbnbSyncActive] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [userBookings, setUserBookings] = useState<any[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
 
   useEffect(() => {
+    document.title = "Meu Perfil - AlugaAki";
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
 
@@ -71,6 +74,7 @@ export const Profile = () => {
         setEditAddress(session.user.user_metadata?.address || '');
         setEditCep(session.user.user_metadata?.cep || '');
         setEditAvatarUrl(session.user.user_metadata?.avatar_url || '');
+        setAirbnbSyncActive(session.user.user_metadata?.airbnb_sync_active || false);
         fetchUserBookings(session.user.id);
       }
     });
@@ -85,6 +89,7 @@ export const Profile = () => {
         setEditAddress(session.user.user_metadata?.address || '');
         setEditCep(session.user.user_metadata?.cep || '');
         setEditAvatarUrl(session.user.user_metadata?.avatar_url || '');
+        setAirbnbSyncActive(session.user.user_metadata?.airbnb_sync_active || false);
         fetchUserBookings(session.user.id);
       }
     });
@@ -235,7 +240,8 @@ export const Profile = () => {
           full_name: editName,
           address: editAddress,
           cep: editCep,
-          avatar_url: editAvatarUrl
+          avatar_url: editAvatarUrl,
+          airbnb_sync_active: airbnbSyncActive
         }
       });
       if (error) throw error;
@@ -245,6 +251,26 @@ export const Profile = () => {
       setMessage({ type: 'error', text: error.message || 'Erro ao atualizar perfil' });
     } finally {
       setUpdateLoading(false);
+    }
+  };
+
+  const handleCopyEmail = () => {
+    const email = `${session.user.id}@robot.zapier.com`;
+    navigator.clipboard.writeText(email).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    });
+  };
+
+  const handleToggleAirbnbSync = async (active: boolean) => {
+    setAirbnbSyncActive(active);
+    // Auto-save this setting
+    try {
+      await supabase.auth.updateUser({
+        data: { airbnb_sync_active: active }
+      });
+    } catch (err) {
+      console.error('Error updating airbnb sync:', err);
     }
   };
 
@@ -411,24 +437,128 @@ export const Profile = () => {
                 </div>
 
                 {session.user.email === ADMIN_EMAIL && (
-                  <div className="p-6 bg-ink text-paper flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-3">
-                      <ShieldCheck className="w-6 h-6 opacity-50" />
-                      <div>
-                        <h3 className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Acesso Administrativo</h3>
-                        <p className="text-sm font-serif">Gerenciamento de Reservas</p>
+                  <div className="p-6 bg-ink text-paper flex flex-col gap-6">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <ShieldCheck className="w-6 h-6 opacity-50" />
+                        <div>
+                          <h3 className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Acesso Administrativo</h3>
+                          <p className="text-sm font-serif">Gerenciamento de Reservas</p>
+                        </div>
                       </div>
+                      <Link 
+                        to="/admin/reservas"
+                        className="w-full md:w-auto px-6 py-3 bg-paper text-ink text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-colors text-center"
+                      >
+                        Acessar Painel
+                      </Link>
                     </div>
-                    <Link 
-                      to="/admin/reservas"
-                      className="w-full md:w-auto px-6 py-3 bg-paper text-ink text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-colors text-center"
-                    >
-                      Acessar Painel
-                    </Link>
+                    
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-paper/10">
+                      <div className="flex items-center gap-3">
+                        <MessageSquare className="w-6 h-6 opacity-50" />
+                        <div>
+                          <h3 className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Suporte ao Cliente</h3>
+                          <p className="text-sm font-serif">Chat de Atendimento</p>
+                        </div>
+                      </div>
+                      <Link 
+                        to="/admin/chat"
+                        className="w-full md:w-auto px-6 py-3 bg-paper text-ink text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-colors text-center"
+                      >
+                        Acessar Chat
+                      </Link>
+                    </div>
                   </div>
                 )}
 
                 <div className="pt-8 border-t border-ink/10">
+                  <h2 className="text-2xl font-serif mb-6">Integrações</h2>
+                  <div className="p-6 bg-ink/5 border border-ink/10">
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center gap-3">
+                        <Share2 className="w-5 h-5 opacity-50" />
+                        <div>
+                          <h3 className="text-sm font-serif">Sincronizar Airbnb</h3>
+                          <p className="text-[10px] uppercase tracking-widest opacity-50">Importação automática de reservas</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleToggleAirbnbSync(!airbnbSyncActive)}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${airbnbSyncActive ? 'bg-ink' : 'bg-ink/20'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-paper rounded-full transition-all ${airbnbSyncActive ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    
+                    {airbnbSyncActive && (
+                      <div className="mt-4 p-4 bg-white border border-ink/5 text-sm">
+                        <p className="opacity-70 mb-3">
+                          Para importar suas reservas automaticamente, encaminhe seus e-mails de confirmação do Airbnb para:
+                        </p>
+                        <div className="flex items-center gap-2 bg-ink/5 p-2 rounded">
+                          <code className="flex-1 text-xs font-mono truncate">a7uygnis@robot.zapier.com</code>
+                          <button 
+                            onClick={handleCopyEmail}
+                            className="flex items-center gap-2 px-3 py-1.5 hover:bg-ink/5 rounded transition-colors text-[10px] uppercase tracking-widest font-bold"
+                            title="Copiar E-mail"
+                          >
+                            {copySuccess ? (
+                              <>
+                                <Check className="w-3 h-3 text-green-600" />
+                                <span>Copiado</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3 opacity-50" />
+                                <span>Copiar E-mail</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-ink/10">
+                  {session.user.user_metadata?.airbnb_sync_active && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Share2 className="w-5 h-5 text-blue-600" />
+                        <h3 className="text-blue-800 font-bold">Sincronização com Airbnb Ativa</h3>
+                      </div>
+                      <p className="text-blue-700 text-sm mb-4">
+                        Para importar suas reservas automaticamente, encaminhe seus e-mails de confirmação do Airbnb para o endereço abaixo:
+                      </p>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded border border-blue-200">
+                        <code className="flex-1 text-xs font-mono text-blue-900 truncate">
+                          {session.user.id}@robot.zapier.com
+                        </code>
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${session.user.id}@robot.zapier.com`);
+                            setCopySuccess(true);
+                            setTimeout(() => setCopySuccess(false), 2000);
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-[10px] uppercase tracking-widest font-bold"
+                        >
+                          {copySuccess ? (
+                            <>
+                              <Check className="w-3 h-3" />
+                              <span>Copiado</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copiar E-mail</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <h2 className="text-2xl font-serif mb-6">Minhas Reservas</h2>
                   {bookingsLoading ? (
                     <p className="text-xs opacity-50 uppercase tracking-widest">Carregando suas reservas...</p>

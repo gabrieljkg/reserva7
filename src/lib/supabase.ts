@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // These variables are injected at runtime from the Secrets panel in AI Studio.
 // For local development, you can set them in a .env file.
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ygqdoewrjsjsfngojqnd.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_OH7tNF0BM0c7-78H7oSzew_EkZFasW8';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const isPlaceholder = !supabaseUrl || !supabaseAnonKey || 
                      supabaseUrl === '[COLE SUA URL AQUI]' || 

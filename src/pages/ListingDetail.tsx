@@ -88,6 +88,13 @@ export const ListingDetail = () => {
           };
           setDestination(mappedData);
           setSelectedImage(mappedData.image);
+          
+          // Update SEO dynamically
+          document.title = `${mappedData.title} - Aluguel de Temporada em Uberlândia | AlugaAki`;
+          const metaDescription = document.querySelector('meta[name="description"]');
+          if (metaDescription) {
+            metaDescription.setAttribute('content', `${mappedData.title}. ${mappedData.description.substring(0, 150)}... Aluguel de chácaras e casas de temporada em Uberlândia.`);
+          }
         }
       } catch (err) {
         console.error('Erro ao carregar destino:', err);
@@ -226,10 +233,8 @@ export const ListingDetail = () => {
         .gte('check_out', checkIn);
 
       if (fetchError && !fetchError.message.includes('does not exist')) {
-        throw fetchError;
-      }
-
-      if (existingBookings && existingBookings.length > 0) {
+        console.warn('Could not check availability on client:', fetchError);
+      } else if (existingBookings && existingBookings.length > 0) {
         setBookingStatus('error');
         alert('Estas datas já estão reservadas. Por favor, escolha outro período.');
         return;

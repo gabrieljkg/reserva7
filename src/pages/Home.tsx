@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { Hero } from '../components/Hero';
 import { DestinationCard } from '../components/DestinationCard';
@@ -14,9 +15,23 @@ export const Home = () => {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q')?.toLowerCase() || '';
   const { isAdmin } = useAdmin();
 
+  const filteredDestinations = destinations.filter(dest => 
+    dest.title.toLowerCase().includes(searchQuery) || 
+    dest.location.toLowerCase().includes(searchQuery) ||
+    dest.description.toLowerCase().includes(searchQuery) ||
+    dest.tags.some(tag => tag.toLowerCase().includes(searchQuery))
+  );
+
   useEffect(() => {
+    document.title = "AlugaAki - Aluguel de Temporada em Uberlândia | Chácaras para eventos";
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Encontre as melhores chácaras para eventos e casas para aluguel de temporada em Uberlândia. Anuncie seu imóvel ou reserve sua próxima estadia com o AlugaAki.');
+    }
     fetchDestinations();
   }, []);
 
@@ -143,14 +158,26 @@ export const Home = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-            {destinations.map((dest) => (
-              <DestinationCard 
-                key={dest.id} 
-                destination={dest} 
-                isAdmin={isAdmin}
-                onDelete={handleDelete}
-              />
-            ))}
+            {filteredDestinations.length > 0 ? (
+              filteredDestinations.map((dest) => (
+                <DestinationCard 
+                  key={dest.id} 
+                  destination={dest} 
+                  isAdmin={isAdmin}
+                  onDelete={handleDelete}
+                />
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center">
+                <p className="text-xl font-serif mb-4">Nenhum santuário encontrado para "{searchQuery}"</p>
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  className="text-[10px] uppercase tracking-widest border-b border-ink pb-1"
+                >
+                  Ver Todos os Santuários
+                </button>
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -196,6 +223,22 @@ export const Home = () => {
               Explorar Pacotes
             </button>
           </div>
+        </div>
+      </section>
+      
+      {/* Host CTA Section */}
+      <section className="py-24 bg-ink text-paper">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-4xl md:text-5xl font-serif mb-6">Ganhe dinheiro com seu imóvel</h2>
+          <p className="max-w-2xl mx-auto text-lg opacity-80 mb-10 leading-relaxed">
+            Tem uma chácara ou casa parada em Uberlândia? Anuncie no AlugaAki e alcance milhares de viajantes com taxas menores que os grandes apps.
+          </p>
+          <button 
+            onClick={() => window.location.href = '/anunciar'}
+            className="px-8 py-4 bg-paper text-ink text-sm uppercase tracking-widest font-bold rounded-full hover:bg-paper/90 transition-colors"
+          >
+            Começar a Anunciar
+          </button>
         </div>
       </section>
       
